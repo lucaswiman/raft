@@ -4,10 +4,11 @@ from __future__ import annotations
 import argparse, functools, logging, sched, socket, sys, time
 from queue import Queue
 from threading import Thread
-from typing import NamedTuple, Optional
+from typing import Dict, List, NamedTuple, Optional
 from urllib.parse import urlparse
 
 from raft_core import ClockTick, Event, Message, RaftConfig, RaftNode
+from log import ItemType
 
 
 logger = logging.getLogger("server")
@@ -81,9 +82,6 @@ class UDPAddress(NamedTuple):
         Returns a generator that accepts bytestrings from the wire and decodes
         them as messages.
         """
-        import select
-
-        # https://stackoverflow.com/questions/17386487/python-detect-when-a-socket-disconnects-for-any-reason
 
         def get_socket():
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -242,7 +240,7 @@ def serve(config: RaftConfig, node: RaftNode, clocktick_ms):
         Thread(target=apply, args=(kv_store, node.applications), daemon=True),
         Thread(
             target=handle_client,
-            args=(node, kv_store, config.client_addresses[node.id]),
+            args=(node, kv_store, config.client_addresses[node.id]),  # type: ignore
             daemon=True,
         ),
     ]

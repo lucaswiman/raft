@@ -212,13 +212,15 @@ class RaftNode:
                 # the current term. #OldNews
                 # TODO: spec says "Reply false" if this case happens. Should this be a message?
                 logger.warning(f"Rejected message: {message}, current_term={self.current_term}")
-                self.outgoing_messages.put(Message(
-                    sender_id=self.id,
-                    recipient_id=message.sender_id,
-                    method_name="reject_message",
-                    current_term=self.current_term,
-                    args={},
-                ))
+                self.outgoing_messages.put(
+                    Message(
+                        sender_id=self.id,
+                        recipient_id=message.sender_id,
+                        method_name="reject_message",
+                        current_term=self.current_term,
+                        args={},
+                    )
+                )
                 return
             elif message.current_term > self.current_term:
                 # Figure 4: The role state machine should transition to follower whenever it
@@ -424,9 +426,11 @@ class RaftNode:
         """
         if self.voted_for is not None:
             logger.debug(f"Voting for {self.voted_for} for {sender_id}; {self.id}")
-            vote = (self.voted_for == sender_id)
+            vote = self.voted_for == sender_id
         else:
-            logger.debug(f"Vote considerations:\n\t Message:{last_log_term=}, {last_log_index=}\n\tSelf: {self.get_last_term_and_index()=}")
+            logger.debug(
+                f"Vote considerations:\n\t Message:{last_log_term=}, {last_log_index=}\n\tSelf: {self.get_last_term_and_index()=}"
+            )
             vote = (last_log_term, last_log_index) >= self.get_last_term_and_index()
             if vote:
                 self.voted_for = sender_id

@@ -1,26 +1,21 @@
 #!/usr/bin/env python
 from __future__ import annotations
 
-import argparse, functools, json, logging, sched, socket, sys, time
-from queue import Queue
-from threading import Thread
-from typing import NamedTuple, Optional
-from urllib.parse import urlparse
+import argparse, logging, sys
 
 import requests
 
-from raft_core import ClockTick, Event, Message, RaftConfig, RaftNode
-from server import UDPAddress
+from server import RaftConfig
 
 
 logger = logging.getLogger("client")
 
 
 def raft_get(key: str, config: RaftConfig):
-    for address in config.client_addresses:
+    for address in config.client_addresses:  # type: ignore
         try:
             response = requests.get(f"{address}/get/{key}")
-        except Exception as e:
+        except Exception:
             logger.debug(f"Failed to contact {address}")
         else:
             if response.status_code == 200:
@@ -36,10 +31,10 @@ def raft_get(key: str, config: RaftConfig):
 
 
 def raft_set(key: str, val: str, config: RaftConfig):
-    for address in config.client_addresses:
+    for address in config.client_addresses:  # type: ignore
         try:
             response = requests.post(f"{address}/set/{key}", json=val)
-        except Exception as e:
+        except Exception:
             logger.debug(f"Failed to contact {address}")
         else:
             if response.status_code == 200:
